@@ -1,0 +1,12 @@
+models:
+  Project:
+    name: string
+    relationships:
+      hasMany: Task
+
+  Task:
+    name: string
+    project_id: unsignedInteger
+    priority: unsignedInteger
+    relationships:
+      belongsTo: Project
