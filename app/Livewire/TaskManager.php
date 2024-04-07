@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Livewire;
 
 use App\Models\Project;
@@ -8,41 +7,50 @@ use Livewire\Component;
 
 class TaskManager extends Component
 {
-    public $project=1;
-    public $newTask = '';
-
-    public function reorder($orderIds){
-        // dd($orderIds);
-        foreach($orderIds as $order => $task_id){
-            Task::where('project_id', $this->project)
-                ->where('id', $task_id)
-                ->update([ 'priority' => $order ] );
-        }
-
-        // Task::where('project_id', $project)->update
-    }
+    public $selectedProjectId;
+    public $newTask;
 
     public function render()
     {
-        // dd($this->project);
-        $tasks = Task::orderBy('priority')->where('project_id', $this->project)->get();
         return view('livewire.task-manager', [
-            'projects' => Project::all(),
-            'tasks' => $tasks
+            'tasks' => Task::orderBy('priority')
+                ->where('project_id', $this->selectedProjectId)
+                ->get()
         ]);
     }
 
-    public function add(){
-        $max = Task::where('project_id', $this->project)->max('priority');
+    public function reorder($list)
+    {
+        foreach ($list as $order) {
+            Task::find($order['value'])->update([
+                'priority' => $order['order']
+            ]);
+        }
+    }
+
+    public function addTask(){
+        $max = Task::where('project_id', $this->selectedProjectId)->max('priority');
         Task::create([
             'name' => $this->newTask,
             'priority' => $max+1,
-            'project_id' => $this->project
+            'project_id' => $this->selectedProjectId
         ]);
         $this->newTask='';
     }
 
-    public function delete($id){
-        Task::where('project_id', $this->project)->where('id', $id)->delete();
+    public function addProject($newProject){
+        Project::create([
+            'name' => $newProject,
+        ]);
+        // $this->newTask='';
     }
+
+    public function removeTask($id){
+        Task::where('project_id', $this->selectedProjectId)->where('id', $id)->delete();
+    }
+
+    public function removeProject($id){
+        Project::where('id', $id)->delete();
+    }
+
 }
